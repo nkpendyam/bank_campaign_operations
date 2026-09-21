@@ -1,0 +1,11 @@
+data/processed/
+data/raw/
+*.sqlite
+__pycache__/
+.venv/
+venv/
+env/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+Thumbs.db

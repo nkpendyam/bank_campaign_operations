@@ -1,0 +1,55 @@
+{
+  "source": {
+    "url": "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip",
+    "variant": "bank-additional-full.csv",
+    "sha256": "74adfc578bf77a7ff4bb1ba4a9f8709d9e3c6907342959c2c8416847e0afb4d8",
+    "doi": "10.24432/C5K306",
+    "license": "CC BY 4.0"
+  },
+  "controls": {
+    "records": 41188,
+    "subscriptions": 4640,
+    "subscription_rate": 0.11265417111780131,
+    "exact_duplicate_rows": 12,
+    "duplicate_groups": 12,
+    "duplicate_affected_rows": 24,
+    "median_campaign": 2.0,
+    "unknown_counts": {
+      "job": 330,
+      "marital": 80,
+      "education": 1731,
+      "default": 8597,
+      "housing": 990,
+      "loan": 990,
+      "contact": 0,
+      "month": 0,
+      "day_of_week": 0,
+      "poutcome": 0,
+      "y": 0
+    },
+    "history_conflicts": {
+      "pdays_never_but_previous_positive": 4110
+    },
+    "missing_cells": 0,
+    "known_recency_records": 1515,
+    "mean_known_recency_days": 6.014521452145215
+  },
+  "checks": [
+    "contact_pressure: SQL partition totals and independent pandas aggregation matched observed records and subscriptions",
+    "channel: SQL partition totals and independent pandas aggregation matched observed records and subscriptions",
+    "channel_by_month: SQL partition totals and independent pandas aggregation matched observed records and subscriptions",
+    "prior_outcome: SQL partition totals and independent pandas aggregation matched observed records and subscriptions",
+    "pooled_month: SQL partition totals and independent pandas aggregation matched observed records and subscriptions",
+    "pressure_strata: SQL partition totals and independent pandas aggregation matched observed records and subscriptions",
+    "schema: exact ordered 21-column source schema validated",
+    "enums: all dictionary categorical values, including y yes/no before mapping, validated",
+    "numerics: finite values and integer/range constraints validated after coercion",
+    "source rows: observed 41,188 records retained without deduplication"
+  ],
+  "limitations": [
+    "Rows are campaign contact records; the source has no unique client identifier or contact date, so client-level and chronological claims are not supported.",
+    "The calendar month is a pooled month label across 2008-2010, not a dated monthly time series.",
+    "The pdays value 999 denotes no prior contact in the documented field; pdays=999 with previous>0 is retained and flagged rather than reconciled.",
+    "These descriptive aggregates do not establish prediction quality, causality, or treatment effects."
+  ]
+}
