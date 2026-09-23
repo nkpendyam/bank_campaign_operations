@@ -59,7 +59,7 @@ python render_report.py
 python build_notebook.py
 ```
 
-The notebook is generated and executed by `build_notebook.py`. The current validated run completed eight code cells without errors; the test suite completed six tests. The PDF was regenerated with three figures and its rendered pages were visually reviewed without clipping.
+The notebook is generated and executed by `build_notebook.py`. The current validated run completed eight code cells without errors; the test suite completed seven tests. The PDF was regenerated with three figures and its rendered pages were visually reviewed without clipping.
 
 Before reading the source, `build.py` verifies its SHA-256 against a pinned project constant that matches the fingerprint in `reports/validation.json`; cached files and newly extracted downloads must match it exactly.
 
