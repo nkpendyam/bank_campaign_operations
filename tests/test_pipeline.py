@@ -1,8 +1,8 @@
-import io,sys,unittest,zipfile,tempfile
+import hashlib,io,sys,unittest,zipfile,tempfile
 from pathlib import Path
 import pandas as pd
 sys.path.insert(0,str(Path(__file__).parents[1]))
-from build import COLS,extract_source,prepare,quality_controls,run_aggregates,wilson
+from build import COLS,ensure_source,extract_source,prepare,quality_controls,run_aggregates,wilson
 
 def fixture():
  rows=[]
@@ -15,7 +15,7 @@ class PipelineTests(unittest.TestCase):
   d=prepare(fixture(),expected=None); self.assertEqual(d.contact_band.tolist(),['1','2','3','4-5','4-5','6+','1']); self.assertEqual(d.pdays_clean.notna().sum(),2); self.assertEqual(d.prior_contacted.sum(),2); self.assertEqual(d.loc[d.pdays!=999,'pdays_clean'].mean(),5)
  def test_rejects_bad_inputs(self):
   for c,v in [('y','maybe'),('contact','fax'),('campaign',0),('campaign',1.5),('age',0),('duration',float('inf'))]:
-   r=fixture(); r.loc[0,c]=v
+   r=fixture(); r[c]=r[c].astype(object); r.loc[0,c]=v
    with self.assertRaises(ValueError): prepare(r,expected=None)
   with self.assertRaises(ValueError): prepare(fixture().rename(columns={'age':'years'}),expected=None)
  def test_duplicates_controls(self):
@@ -31,6 +31,18 @@ class PipelineTests(unittest.TestCase):
   with zipfile.ZipFile(o,'w') as z: z.writestr('bank-additional.zip',b.getvalue())
   with tempfile.TemporaryDirectory() as td:
    p=extract_source(o.getvalue(),Path(td)); self.assertTrue(p.exists()); self.assertTrue((Path(td)/'bank-additional-names.txt').exists())
+ def test_rejects_changed_source_with_same_schema_and_row_count(self):
+  original=fixture().to_csv(sep=';',index=False).encode()
+  changed=fixture().assign(age=lambda d:d.age+1).to_csv(sep=';',index=False).encode()
+  self.assertNotEqual(hashlib.sha256(original).hexdigest(),hashlib.sha256(changed).hexdigest())
+  original_frame=pd.read_csv(io.BytesIO(original),sep=';'); changed_frame=pd.read_csv(io.BytesIO(changed),sep=';')
+  self.assertEqual(original_frame.shape,changed_frame.shape); self.assertEqual(original_frame.columns.tolist(),changed_frame.columns.tolist())
+  from unittest.mock import patch
+  with tempfile.TemporaryDirectory() as td:
+   raw=Path(td); (raw/'bank-additional-full.csv').write_bytes(changed); (raw/'bank-additional-names.txt').write_text('fixture')
+   with patch('build.EXPECTED_SOURCE_SHA256',hashlib.sha256(original).hexdigest()):
+    with self.assertRaisesRegex(ValueError,'source SHA-256 mismatch'):
+     ensure_source(raw)
  def test_sql_reconciliation(self):
   r=fixture(); d=prepare(r,expected=None); import sqlite3
   from unittest.mock import patch

@@ -61,6 +61,8 @@ python build_notebook.py
 
 The notebook is generated and executed by `build_notebook.py`. The current validated run completed eight code cells without errors; the test suite completed six tests. The PDF was regenerated with three figures and its rendered pages were visually reviewed without clipping.
 
+Before reading the source, `build.py` verifies its SHA-256 against a pinned project constant that matches the fingerprint in `reports/validation.json`; cached files and newly extracted downloads must match it exactly.
+
 ## Interpretation limits
 
 This is descriptive, observational evidence. Wilson intervals assume independent records, but repeated people cannot be identified. Channel and contact pressure are confounded by selection and stopping behavior; successful subscriptions may stop further contacts. The results do not estimate causal uplift, a contact cap, ROI, revenue, or staffing savings. Calendar-month tables pool matching month labels across years and are not a chronological time series. `duration` is known after a contact and is excluded from prospective targeting.

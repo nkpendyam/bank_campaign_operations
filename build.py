@@ -19,6 +19,7 @@ OUT = ROOT / "data" / "processed"
 REPORTS = ROOT / "reports"
 URL = "https://archive.ics.uci.edu/static/public/222/bank+marketing.zip"
 SOURCE_VARIANT = "bank-additional-full.csv"
+EXPECTED_SOURCE_SHA256 = "74adfc578bf77a7ff4bb1ba4a9f8709d9e3c6907342959c2c8416847e0afb4d8"
 SOURCE_DOI = "10.24432/C5K306"
 SOURCE_LICENSE = "CC BY 4.0"
 
@@ -86,18 +87,30 @@ def extract_source(archive_bytes: bytes, destination: Path | str) -> Path:
     return destination / SOURCE_VARIANT
 
 
+def verify_source_hash(csv_path: Path | str) -> Path:
+    """Reject cached or downloaded source bytes that differ from the verified UCI file."""
+    csv_path = Path(csv_path)
+    actual = hashlib.sha256(csv_path.read_bytes()).hexdigest()
+    if actual != EXPECTED_SOURCE_SHA256:
+        raise ValueError(
+            f"source SHA-256 mismatch for {csv_path.name}: "
+            f"expected {EXPECTED_SOURCE_SHA256}, got {actual}"
+        )
+    return csv_path
+
+
 def ensure_source(raw: Path | str = RAW) -> Path:
     raw = Path(raw)
     raw.mkdir(parents=True, exist_ok=True)
     csv_path = raw / SOURCE_VARIANT
     names_path = raw / "bank-additional-names.txt"
     if csv_path.exists() and names_path.exists():
-        return csv_path
+        return verify_source_hash(csv_path)
     archive_path = raw / "bank-marketing.zip"
     if not archive_path.exists():
         with urllib.request.urlopen(URL, timeout=60) as response:
             archive_path.write_bytes(response.read())
-    return extract_source(archive_path.read_bytes(), raw)
+    return verify_source_hash(extract_source(archive_path.read_bytes(), raw))
 
 
 def prepare(df: pd.DataFrame, expected: int | None = 41188) -> pd.DataFrame:
